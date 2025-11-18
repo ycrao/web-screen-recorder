@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>媒体录制测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+        }
+        
+        .test-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        #testVideo {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .format-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 媒体录制功能测试</h1>
+        <p>这个页面用于测试修复后的媒体录制功能，检查各种兼容性和错误处理情况。</p>
+        
+        <div class="section">
+            <h3>🔍 浏览器兼容性检查</h3>
+            <button class="test-button" onclick="testBrowserCompatibility()">运行兼容性测试</button>
+            <div id="compatibilityResults"></div>
+        </div>
+        
+        <div class="section">
+            <h3>📹 媒体格式支持测试</h3>
+            <button class="test-button" onclick="testMediaFormats()">测试支持的格式</button>
+            <div id="formatResults"></div>
+        </div>
+        
+        <div class="section">
+            <h3>🎥 媒体流创建测试</h3>
+            <div>
+                <button class="test-button" onclick="testCameraAccess()">测试摄像头访问</button>
+                <button class="test-button" onclick="testScreenCapture()">测试屏幕录制</button>
+                <button class="test-button" onclick="testTabCapture()">测试标签页录制</button>
+            </div>
+            <video id="testVideo" controls style="display: none;"></video>
+            <div id="streamResults"></div>
+        </div>
+        
+        <div class="section">
+            <h3>🔄 MediaRecorder 创建测试</h3>
+            <button class="test-button" onclick="testMediaRecorderCreation()">测试 MediaRecorder 创建</button>
+            <div id="recorderResults"></div>
+        </div>
+        
+        <div class="section">
+            <h3>⚡ 综合录制测试</h3>
+            <p>测试完整的录制流程（包括权限请求和错误处理）：</p>
+            <button class="test-button" onclick="runFullRecordingTest()">运行完整测试</button>
+            <div id="fullTestResults"></div>
+        </div>
+        
+        <div class="section">
+            <h3>📋 测试说明</h3>
+            <ul>
+                <li>点击各个测试按钮来验证不同的功能</li>
+                <li>某些测试需要用户授权，请允许浏览器访问权限</li>
+                <li>测试结果会显示在相应的区域中</li>
+                <li>如果测试失败，请查看浏览器控制台获取详细错误信息</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 浏览器兼容性检查
+        function testBrowserCompatibility() {
+            const results = document.getElementById('compatibilityResults');
+            let issues = [];
+            let warnings = [];
+            
+            // 检查基本API支持
+            if (!navigator.mediaDevices) {
+                issues.push('缺少 MediaDevices API');
+            } else {
+                results.innerHTML += '<div class="test-result success">✓ MediaDevices API 支持</div>';
+            }
+            
+            if (!navigator.mediaDevices.getUserMedia) {
+                issues.push('不支持 getUserMedia');
+            } else {
+                results.innerHTML += '<div class="test-result success">✓ getUserMedia 支持</div>';
+            }
+            
+            if (!MediaRecorder) {
+                issues.push('不支持 MediaRecorder API');
+            } else {
+                results.innerHTML += '<div class="test-result success">✓ MediaRecorder API 支持</div>';
+            }
+            
+            if (!navigator.mediaDevices.getDisplayMedia) {
+                issues.push('不支持屏幕录制 (getDisplayMedia)');
+                results.innerHTML += '<div class="test-result warning">⚠ 屏幕录制不支持</div>';
+            } else {
+                results.innerHTML += '<div class="test-result success">✓ 屏幕录制支持</div>';
+            }
+            
+            // 检查HTTPS环境
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                warnings.push('需要在HTTPS环境下使用（某些API需要安全上下文）');
+                results.innerHTML += '<div class="test-result warning">⚠ 非HTTPS环境</div>';
+            } else {
+                results.innerHTML += '<div class="test-result success">✓ 安全上下文</div>';
+            }
+            
+            if (issues.length > 0) {
+                results.innerHTML += '<div class="test-result error">❌ 兼容性问题: ' + issues.join(', ') + '</div>';
+            }
+            
+            if (warnings.length > 0) {
+                results.innerHTML += '<div class="test-result warning">⚠ 注意事项: ' + warnings.join(', ') + '</div>';
+            }
+            
+            // 记录详细信息
+            console.log('浏览器信息:', {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language
+            });
+        }
+        
+        // 媒体格式支持测试
+        function testMediaFormats() {
+            const results = document.getElementById('formatResults');
+            const testFormats = [
+                'video/webm;codecs=vp8,vorbis',
+                'video/webm;codecs=vp8',
+                'video/webm',
+                'video/mp4;codecs=h264',
+                'video/mp4',
+                'video/mpeg'
+            ];
+            
+            results.innerHTML += '<div class="format-list"><strong>测试的格式:</strong><br>';
+            
+            testFormats.forEach(format => {
+                if (MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(format)) {
+                    results.innerHTML += `<div class="test-result success">✓ ${format}</div>`;
+                } else {
+                    results.innerHTML += `<div class="test-result error">✗ ${format}</div>`;
+                }
+            });
+            
+            results.innerHTML += '</div>';
+        }
+        
+        // 摄像头访问测试
+        async function testCameraAccess() {
+            const results = document.getElementById('streamResults');
+            const video = document.getElementById('testVideo');
+            
+            try {
+                results.innerHTML += '<div class="test-result">正在测试摄像头访问...</div>';
+                
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: true
+                });
+                
+                video.srcObject = stream;
+                video.style.display = 'block';
+                results.innerHTML += '<div class="test-result success">✓ 摄像头访问成功</div>';
+                
+                // 显示轨道信息
+                const videoTracks = stream.getVideoTracks();
+                const audioTracks = stream.getAudioTracks();
+                
+                results.innerHTML += `<div class="test-result success">✓ 视频轨道: ${videoTracks.length} 个</div>`;
+                results.innerHTML += `<div class="test-result success">✓ 音频轨道: ${audioTracks.length} 个</div>`;
+                
+                // 5秒后停止
+                setTimeout(() => {
+                    stream.getTracks().forEach(track => track.stop());
+                    video.style.display = 'none';
+                    results.innerHTML += '<div class="test-result">流已停止</div>';
+                }, 5000);
+                
+            } catch (error) {
+                results.innerHTML += `<div class="test-result error">❌ 摄像头访问失败: ${error.message}</div>`;
+                
+                if (error.name === 'NotAllowedError') {
+                    results.innerHTML += '<div class="test-result error">❌ 权限被拒绝</div>';
+                } else if (error.name === 'NotFoundError') {
+                    results.innerHTML += '<div class="test-result error">❌ 未找到摄像头设备</div>';
+                }
+            }
+        }
+        
+        // 屏幕录制测试
+        async function testScreenCapture() {
+            const results = document.getElementById('streamResults');
+            const video = document.getElementById('testVideo');
+            
+            try {
+                results.innerHTML += '<div class="test-result">正在测试屏幕录制...</div>';
+                
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { 
+                        mediaSource: 'screen',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                        frameRate: { ideal: 30, max: 60 }
+                    },
+                    audio: true
+                });
+                
+                video.srcObject = stream;
+                video.style.display = 'block';
+                results.innerHTML += '<div class="test-result success">✓ 屏幕录制成功</div>';
+                
+                // 显示轨道信息
+                const videoTracks = stream.getVideoTracks();
+                const audioTracks = stream.getAudioTracks();
+                
+                results.innerHTML += `<div class="test-result success">✓ 视频轨道: ${videoTracks.length} 个</div>`;
+                if (audioTracks.length > 0) {
+                    results.innerHTML += `<div class="test-result success">✓ 音频轨道: ${audioTracks.length} 个</div>`;
+                }
+                
+                // 5秒后停止
+                setTimeout(() => {
+                    stream.getTracks().forEach(track => track.stop());
+                    video.style.display = 'none';
+                    results.innerHTML += '<div class="test-result">流已停止</div>';
+                }, 5000);
+                
+            } catch (error) {
+                results.innerHTML += `<div class="test-result error">❌ 屏幕录制失败: ${error.message}</div>`;
+                
+                if (error.name === 'NotAllowedError') {
+                    results.innerHTML += '<div class="test-result error">❌ 用户拒绝屏幕共享权限</div>';
+                } else if (error.name === 'NotSupportedError') {
+                    results.innerHTML += '<div class="test-result error">❌ 浏览器不支持屏幕录制</div>';
+                }
+            }
+        }
+        
+        // 标签页录制测试
+        async function testTabCapture() {
+            const results = document.getElementById('streamResults');
+            const video = document.getElementById('testVideo');
+            
+            try {
+                results.innerHTML += '<div class="test-result">正在测试标签页录制...</div>';
+                
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { 
+                        mediaSource: 'tab',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: true
+                });
+                
+                video.srcObject = stream;
+                video.style.display = 'block';
+                results.innerHTML += '<div class="test-result success">✓ 标签页录制成功</div>';
+                
+                // 5秒后停止
+                setTimeout(() => {
+                    stream.getTracks().forEach(track => track.stop());
+                    video.style.display = 'none';
+                    results.innerHTML += '<div class="test-result">流已停止</div>';
+                }, 5000);
+                
+            } catch (error) {
+                results.innerHTML += `<div class="test-result error">❌ 标签页录制失败: ${error.message}</div>`;
+            }
+        }
+        
+        // MediaRecorder 创建测试
+        function testMediaRecorderCreation() {
+            const results = document.getElementById('recorderResults');
+            
+            try {
+                results.innerHTML += '<div class="test-result">正在测试 MediaRecorder 创建...</div>';
+                
+                // 测试不同的格式
+                const testFormats = [
+                    'video/webm;codecs=vp8,vorbis',
+                    'video/webm;codecs=vp8',
+                    'video/webm',
+                    'video/mp4;codecs=h264'
+                ];
+                
+                let successCount = 0;
+                
+                testFormats.forEach(format => {
+                    try {
+                        // 创建一个虚拟的 MediaStream 来测试
+                        const dummyStream = new MediaStream();
+                        const recorder = new MediaRecorder(dummyStream, { mimeType: format });
+                        results.innerHTML += `<div class="test-result success">✓ ${format} - 创建成功</div>`;
+                        successCount++;
+                    } catch (error) {
+                        results.innerHTML += `<div class="test-result error">✗ ${format} - ${error.message}</div>`;
+                    }
+                });
+                
+                // 测试默认创建（不指定格式）
+                try {
+                    const dummyStream = new MediaStream();
+                    const recorder = new MediaRecorder(dummyStream);
+                    results.innerHTML += '<div class="test-result success">✓ 默认格式 - 创建成功</div>';
+                    successCount++;
+                } catch (error) {
+                    results.innerHTML += `<div class="test-result error">✗ 默认格式 - ${error.message}</div>`;
+                }
+                
+                results.innerHTML += `<div class="test-result ${successCount > 0 ? 'success' : 'error'}">总计: ${successCount} 个格式支持</div>`;
+                
+            } catch (error) {
+                results.innerHTML += `<div class="test-result error">❌ MediaRecorder 测试失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 完整录制流程测试
+        async function runFullRecordingTest() {
+            const results = document.getElementById('fullTestResults');
+            
+            results.innerHTML += '<div class="test-result">开始完整录制测试...</div>';
+            
+            try {
+                // 1. 创建媒体流
+                results.innerHTML += '<div class="test-result">1. 创建媒体流...</div>';
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: true
+                });
+                results.innerHTML += '<div class="test-result success">✓ 媒体流创建成功</div>';
+                
+                // 2. 创建 MediaRecorder
+                results.innerHTML += '<div class="test-result">2. 创建 MediaRecorder...</div>';
+                
+                // 检测支持的格式
+                const supportedFormats = [];
+                const testFormats = [
+                    'video/webm;codecs=vp8,vorbis',
+                    'video/webm;codecs=vp8',
+                    'video/webm'
+                ];
+                
+                for (const format of testFormats) {
+                    if (MediaRecorder.isTypeSupported(format)) {
+                        supportedFormats.push(format);
+                    }
+                }
+                
+                let recorder;
+                if (supportedFormats.length > 0) {
+                    try {
+                        recorder = new MediaRecorder(stream, { mimeType: supportedFormats[0] });
+                        results.innerHTML += `<div class="test-result success">✓ MediaRecorder 创建成功 (${supportedFormats[0]})</div>`;
+                    } catch (error) {
+                        recorder = new MediaRecorder(stream);
+                        results.innerHTML += '<div class="test-result warning">⚠ 使用默认格式创建 MediaRecorder</div>';
+                    }
+                } else {
+                    recorder = new MediaRecorder(stream);
+                    results.innerHTML += '<div class="test-result warning">⚠ 使用默认格式创建 MediaRecorder</div>';
+                }
+                
+                // 3. 开始录制
+                results.innerHTML += '<div class="test-result">3. 开始录制...</div>';
+                
+                const chunks = [];
+                recorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        chunks.push(event.data);
+                    }
+                };
+                
+                recorder.start();
+                results.innerHTML += '<div class="test-result success">✓ 录制开始</div>';
+                
+                // 录制3秒
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // 4. 停止录制
+                results.innerHTML += '<div class="test-result">4. 停止录制...</div>';
+                recorder.stop();
+                results.innerHTML += '<div class="test-result success">✓ 录制停止</div>';
+                
+                // 5. 处理录制数据
+                results.innerHTML += '<div class="test-result">5. 处理录制数据...</div>';
+                
+                if (chunks.length > 0) {
+                    const blob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
+                    results.innerHTML += `<div class="test-result success">✓ 录制文件创建成功 (${blob.size} bytes)</div>`;
+                    results.innerHTML += `<div class="test-result success">✓ MIME类型: ${recorder.mimeType || 'video/webm'}</div>`;
+                } else {
+                    results.innerHTML += '<div class="test-result warning">⚠ 未生成录制数据</div>';
+                }
+                
+                // 清理
+                stream.getTracks().forEach(track => track.stop());
+                
+                results.innerHTML += '<div class="test-result success">🎉 完整录制测试完成！</div>';
+                
+            } catch (error) {
+                results.innerHTML += `<div class="test-result error">❌ 测试失败: ${error.message}</div>`;
+                
+                if (error.name === 'NotAllowedError') {
+                    results.innerHTML += '<div class="test-result error">❌ 请允许浏览器访问摄像头和麦克风权限</div>';
+                }
+            }
+        }
+        
+        // 页面加载时自动运行兼容性检查
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('媒体录制测试页面已加载');
+            testBrowserCompatibility();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页录制器</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>网页录制器</h1>
+            <p>录制网页内容，支持视频和音频</p>
+        </header>
+
+        <main>
+            <!-- 录制控制区域 -->
+            <div class="controls">
+                <div class="control-group">
+                    <label for="recordSource">录制源:</label>
+                    <select id="recordSource">
+                        <option value="screen">屏幕录制</option>
+                        <option value="camera">摄像头</option>
+                        <option value="tab">当前标签页</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="audioSource">音频源:</label>
+                    <select id="audioSource">
+                        <option value="none">无音频</option>
+                        <option value="mic">麦克风</option>
+                        <option value="system">系统音频</option>
+                        <option value="both">麦克风+系统</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="videoQuality">视频质量:</label>
+                    <select id="videoQuality">
+                        <option value="360">360p</option>
+                        <option value="720" selected>720p</option>
+                        <option value="1080">1080p</option>
+                        <option value="1440">1440p</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <button id="startBtn" class="btn btn-primary">开始录制</button>
+                    <button id="stopBtn" class="btn btn-danger" disabled>停止录制</button>
+                    <button id="pauseBtn" class="btn btn-warning" disabled>暂停录制</button>
+                </div>
+            </div>
+
+            <!-- 预览区域 -->
+            <div class="preview-section">
+                <div class="preview-container">
+                    <h3>预览</h3>
+                    <div class="preview-box">
+                        <video id="previewVideo" autoplay muted></video>
+                        <canvas id="previewCanvas" style="display: none;"></canvas>
+                        <div id="noPreview" class="no-preview">
+                            <p>点击"开始录制"开始预览</p>
+                        </div>
+                    </div>
+                    <div class="preview-controls">
+                        <button id="switchSourceBtn" class="btn btn-secondary" disabled>切换源</button>
+                        <button id="fullscreenBtn" class="btn btn-secondary" disabled>全屏预览</button>
+                    </div>
+                </div>
+
+                <!-- 录制状态 -->
+                <div class="recording-status">
+                    <div id="recordingIndicator" class="recording-indicator" style="display: none;">
+                        <div class="pulse"></div>
+                        <span>录制中</span>
+                        <span id="timer">00:00:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 录制列表 -->
+            <div class="recordings-section">
+                <h3>录制文件</h3>
+                <div id="recordingsList" class="recordings-list">
+                    <!-- 录制文件将在这里显示 -->
+                </div>
+            </div>
+
+            <!-- 设置面板 -->
+            <div class="settings-section">
+                <details id="settingsPanel">
+                    <summary>高级设置</summary>
+                    <div class="settings-content">
+                        <div class="setting-group">
+                            <label for="frameRate">帧率:</label>
+                            <input type="range" id="frameRate" min="1" max="60" value="30">
+                            <span id="frameRateValue">30 fps</span>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <label for="bitrate">比特率 (Mbps):</label>
+                            <input type="range" id="bitrate" min="1" max="20" value="5">
+                            <span id="bitrateValue">5 Mbps</span>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <label>
+                                <input type="checkbox" id="enableAudio">
+                                启用音频录制
+                            </label>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <label>
+                                <input type="checkbox" id="enableVideo">
+                                启用视频录制
+                            </label>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 网页录制器 - 支持现代浏览器</p>
+        </footer>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+</html>
