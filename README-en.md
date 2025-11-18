@@ -5,6 +5,8 @@ web-screen-recorder
 
 > This is a powerful web-based recording tool, similar to [OBS](https://obsproject.com/), that can record screen, webcam, and audio directly in the browser.
 
+![screen-shot](screen-shot.png)
+
 ## 🚀 Key Features
 
 ### 📹 Source Selection
