@@ -1,5 +1,7 @@
-web-screen-recorder
--------------------
+网页录制器
+----------
+
+[English](README-en.md)
 
 >	这是一个功能强大的网页录制工具，类似于 [OBS](https://obsproject.com/) 功能，可以在浏览器中录制屏幕、摄像头和音频。
 
