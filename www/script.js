@@ -471,7 +471,7 @@ class WebRecorder {
         this.recordingsList.innerHTML = '';
         
         if (recordings.length === 0) {
-            this.recordingsList.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 20px;">暂无录制文件</p>';
+            this.recordingsList.innerHTML = '<p style="text-align: center; color: #fff; padding: 20px;">暂无录制文件</p>';
             return;
         }
         
